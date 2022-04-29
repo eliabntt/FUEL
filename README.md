@@ -1,5 +1,36 @@
 # FUEL
 
+Forked FUEL project. 
+
+WORKING IN UBUNTU 20.04 WITH PCL 1.10 AND ROS NOETIC.
+
+Edits:
+- nlopt as submodule. PLEASE UNINSTALL THE UBUNTU-SHIPPED VERSION (`sudo apt purge ros-noetic-nlopt`)
+- FSM with manual goal is possible
+- 360 rotation behaviour if no goal is reachable
+- Multi node edits for topics based on namespace separation
+- Publishing the bspline trajectory in a `rotors_simulator` compliant format
+
+Please note that this is a TAILORED FUEL that is usable only as an autonomous exploration system based on a simulation environment different than the one created by the original authors. 
+
+If you want to use the original simulation or other parts of the code please check commit [5d61a8](https://github.com/eliabntt/FUEL/commit/5d61a8c4e531cf8d3e828143e4fc6c85db5f8637) and rollback ALL changes related to TOPICS.
+An example:
+![image](https://user-images.githubusercontent.com/19806758/165939138-bcc36f2f-a4e8-4927-99a1-d583e2a798dc.png)
+
+In this way you will be able to use the original version of the code while still mantaining the edits on the FSM. 
+
+My settings can be run with 
+`roslaunch exploration_manager my_exploration.launch`
+
+As you can see in the [launch file](https://github.com/eliabntt/FUEL/blob/main/fuel_planner/exploration_manager/launch/my_exploration.launch) the main ROS namespace is set to the `mav_name` (defaulting to `my_robot_0`).
+
+The `custom_joint_controller` can be easily commented (although you can find it [here](https://github.com/eliabntt/custom_6dof_joint_controller)). It serves as a bridge between the `nmpc` and the `simulation` for robots controlled by 6 indipendent Joints (x,y,z,roll,pitch,yaw).
+
+`mav_nonlinear_mpc` used is the drone `nmpc` from `ethz-asl/rotors_simulator` ([here](https://github.com/ethz-asl/rotors_simulator)). You can change this with whatever you want. In my implementation takes in input the bspline-adapted trajectory and computes the relative drone trajectory.
+
+The other arguments are as the previous FUEL implementation. 
+
+________________________________
 __News:__
 
 - Aug 24, 2021: The CPU-based simulation is released, CUDA is no longer required. Richer exploration environments are provided.
