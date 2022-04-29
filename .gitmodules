@@ -1,0 +1,3 @@
+[submodule "nlopt"]
+	path = nlopt
+	url = https://github.com/ethz-asl/nlopt.git
