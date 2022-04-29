@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
   ros::Subscriber pause_sub = node.subscribe("planning/pause", 10, pauseCallback);
 
   cmd_vis_pub = node.advertise<visualization_msgs::Marker>("planning/position_cmd_vis", 10);
-  pos_cmd_pub = node.advertise<quadrotor_msgs::PositionCommand>("/position_cmd", 50);
+  pos_cmd_pub = node.advertise<quadrotor_msgs::PositionCommand>("position_cmd", 50);
   traj_pub = node.advertise<visualization_msgs::Marker>("planning/travel_traj", 10);
 
   ros::Timer cmd_timer = node.createTimer(ros::Duration(0.01), cmdCallback);

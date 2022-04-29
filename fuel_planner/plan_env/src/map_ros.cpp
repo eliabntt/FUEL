@@ -59,20 +59,21 @@ void MapROS::init() {
   esdf_timer_ = node_.createTimer(ros::Duration(0.05), &MapROS::updateESDFCallback, this);
   vis_timer_ = node_.createTimer(ros::Duration(0.05), &MapROS::visCallback, this);
 
-  map_all_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/sdf_map/occupancy_all", 10);
-  map_local_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/sdf_map/occupancy_local", 10);
+  map_all_pub_ = node_.advertise<sensor_msgs::PointCloud2>("sdf_map/occupancy_all", 10);
+  map_local_pub_ = node_.advertise<sensor_msgs::PointCloud2>("sdf_map/occupancy_local", 10);
   map_local_inflate_pub_ =
-      node_.advertise<sensor_msgs::PointCloud2>("/sdf_map/occupancy_local_inflate", 10);
-  unknown_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/sdf_map/unknown", 10);
-  esdf_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/sdf_map/esdf", 10);
-  update_range_pub_ = node_.advertise<visualization_msgs::Marker>("/sdf_map/update_range", 10);
-  depth_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/sdf_map/depth_cloud", 10);
+      node_.advertise<sensor_msgs::PointCloud2>("sdf_map/occupancy_local_inflate", 10);
+  unknown_pub_ = node_.advertise<sensor_msgs::PointCloud2>("sdf_map/unknown", 10);
+  esdf_pub_ = node_.advertise<sensor_msgs::PointCloud2>("sdf_map/esdf", 10);
+  update_range_pub_ = node_.advertise<visualization_msgs::Marker>("sdf_map/update_range", 10);
+  depth_pub_ = node_.advertise<sensor_msgs::PointCloud2>("sdf_map/depth_cloud", 10);
 
-  depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(node_, "/map_ros/depth", 50));
+  depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(node_, "map_ros/depth", 50));
   cloud_sub_.reset(
-      new message_filters::Subscriber<sensor_msgs::PointCloud2>(node_, "/map_ros/cloud", 50));
+      new message_filters::Subscriber<sensor_msgs::PointCloud2>(node_, "map_ros/cloud", 50));
   pose_sub_.reset(
-      new message_filters::Subscriber<geometry_msgs::PoseStamped>(node_, "/map_ros/pose", 25));
+      new message_filters::Subscriber<geometry_msgs::PoseStamped>(node_, "map_ros/pose", 25));
+	camera_info_sub_ = node_.subscribe("map_ros/info", 1, &MapROS::infoCallback, this);
 
   sync_image_pose_.reset(new message_filters::Synchronizer<MapROS::SyncPolicyImagePose>(
       MapROS::SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
@@ -82,6 +83,15 @@ void MapROS::init() {
   sync_cloud_pose_->registerCallback(boost::bind(&MapROS::cloudPoseCallback, this, _1, _2));
 
   map_start_time_ = ros::Time::now();
+}
+
+void MapROS::infoCallback(const sensor_msgs::CameraInfoConstPtr& info) {
+	fx_ = info->K[0];
+	fy_ = info->K[4];
+	cx_ = info->K[2];
+	cy_ = info->K[5];
+	skip_pixel_ = int(info->width / 640 * 2);
+	info_received = true;
 }
 
 void MapROS::visCallback(const ros::TimerEvent& e) {
@@ -120,6 +130,7 @@ void MapROS::updateESDFCallback(const ros::TimerEvent& /*event*/) {
 
 void MapROS::depthPoseCallback(const sensor_msgs::ImageConstPtr& img,
                                const geometry_msgs::PoseStampedConstPtr& pose) {
+	if (!info_received) return;
   camera_pos_(0) = pose->pose.position.x;
   camera_pos_(1) = pose->pose.position.y;
   camera_pos_(2) = pose->pose.position.z;

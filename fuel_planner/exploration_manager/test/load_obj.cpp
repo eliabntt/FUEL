@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "load_obj");
   ros::NodeHandle node("~");
 
-  ros::Publisher cloud_pub = node.advertise<sensor_msgs::PointCloud2>("/load_obj/cloud", 10);
+  ros::Publisher cloud_pub = node.advertise<sensor_msgs::PointCloud2>("load_obj/cloud", 10);
 
   pcl::PointCloud<pcl::PointXYZ> cloud;
 

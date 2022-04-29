@@ -70,9 +70,9 @@ int main(int argc, char** argv) {
   ros::NodeHandle node;
   ros::NodeHandle nh("~");
 
-  pos_pub_ = nh.advertise<visualization_msgs::Marker>("/planning_vis/pos", 10);
-  vel_pub_ = nh.advertise<visualization_msgs::Marker>("/planning_vis/vel", 10);
-  acc_pub_ = nh.advertise<visualization_msgs::Marker>("/planning_vis/acc", 10);
+  pos_pub_ = nh.advertise<visualization_msgs::Marker>("planning_vis/pos", 10);
+  vel_pub_ = nh.advertise<visualization_msgs::Marker>("planning_vis/vel", 10);
+  acc_pub_ = nh.advertise<visualization_msgs::Marker>("planning_vis/acc", 10);
 
   ros::Duration(1.0).sleep();
 

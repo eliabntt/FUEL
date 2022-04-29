@@ -237,20 +237,20 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "faster");
   ros::NodeHandle nh("~");
 
-  ros::Subscriber cmd_sub = nh.subscribe("/position_cmd", 10, cmdCallback);
-  // ros::Subscriber cloud_sub = nh.subscribe("/sdf_map/occupancy", 10, cloudCallback);
-  ros::Subscriber cloud_sub = nh.subscribe("/sdf_map/occupancy_local", 10, cloudCallback);
-  ros::Subscriber traj_sub = nh.subscribe("/planning_vis/trajectory", 10, trajCallback);
-  ros::Subscriber ewok_sub = nh.subscribe("/firefly/optimal_trajectory", 10, ewokCallback);
-  // ros::Subscriber travel_traj_sub = nh.subscribe("/planning/travel_traj", 10,
+  ros::Subscriber cmd_sub = nh.subscribe("position_cmd", 10, cmdCallback);
+  // ros::Subscriber cloud_sub = nh.subscribe("sdf_map/occupancy", 10, cloudCallback);
+  ros::Subscriber cloud_sub = nh.subscribe("sdf_map/occupancy_local", 10, cloudCallback);
+  ros::Subscriber traj_sub = nh.subscribe("planning_vis/trajectory", 10, trajCallback);
+  ros::Subscriber ewok_sub = nh.subscribe("firefly/optimal_trajectory", 10, ewokCallback);
+  // ros::Subscriber travel_traj_sub = nh.subscribe("planning/travel_traj", 10,
   // travelCallback);
 
-  traj_pub = nh.advertise<visualization_msgs::Marker>("/process_msg/execute_traj", 10);
-  yaw_pub = nh.advertise<visualization_msgs::Marker>("/process_msg/execute_yaw", 10);
-  cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("/process_msg/global_cloud", 10);
-  ewok_pub = nh.advertise<visualization_msgs::Marker>("/process_msg/ewok", 10);
-  // traj_pub2 = nh.advertise<visualization_msgs::Marker>("/process_msg/plan_traj", 10);
-  traj_pub2 = nh.advertise<visualization_msgs::Marker>("/planning/travel_traj", 10);
+  traj_pub = nh.advertise<visualization_msgs::Marker>("process_msg/execute_traj", 10);
+  yaw_pub = nh.advertise<visualization_msgs::Marker>("process_msg/execute_yaw", 10);
+  cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("process_msg/global_cloud", 10);
+  ewok_pub = nh.advertise<visualization_msgs::Marker>("process_msg/ewok", 10);
+  // traj_pub2 = nh.advertise<visualization_msgs::Marker>("process_msg/plan_traj", 10);
+  traj_pub2 = nh.advertise<visualization_msgs::Marker>("planning/travel_traj", 10);
 
   last_pos.setZero();
   pts.reset(new pcl::PointCloud<pcl::PointXYZ>());

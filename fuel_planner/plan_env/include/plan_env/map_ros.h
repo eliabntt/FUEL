@@ -11,6 +11,7 @@
 
 #include <cv_bridge/cv_bridge.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <sensor_msgs/CameraInfo.h>
 #include <nav_msgs/Odometry.h>
 
 #include <memory>
@@ -36,7 +37,9 @@ private:
   void cloudPoseCallback(const sensor_msgs::PointCloud2ConstPtr& msg,
                          const geometry_msgs::PoseStampedConstPtr& pose);
   void updateESDFCallback(const ros::TimerEvent& /*event*/);
-  void visCallback(const ros::TimerEvent& /*event*/);
+
+	void infoCallback(const sensor_msgs::CameraInfoConstPtr& info);
+	void visCallback(const ros::TimerEvent& /*event*/);
 
   void publishMapAll();
   void publishMapLocal();
@@ -48,6 +51,8 @@ private:
   void proessDepthImage();
 
   SDFMap* map_;
+
+	bool info_received = false;
   // may use ExactTime?
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, geometry_msgs::PoseStamped>
       SyncPolicyImagePose;
@@ -61,6 +66,7 @@ private:
   shared_ptr<message_filters::Subscriber<sensor_msgs::Image>> depth_sub_;
   shared_ptr<message_filters::Subscriber<sensor_msgs::PointCloud2>> cloud_sub_;
   shared_ptr<message_filters::Subscriber<geometry_msgs::PoseStamped>> pose_sub_;
+  ros::Subscriber camera_info_sub_;
   SynchronizerImagePose sync_image_pose_;
   SynchronizerCloudPose sync_cloud_pose_;
 

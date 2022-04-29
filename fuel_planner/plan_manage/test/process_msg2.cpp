@@ -332,13 +332,13 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "process_msg2");
   ros::NodeHandle nh("~");
 
-  ros::Subscriber cmd_sub = nh.subscribe("/planning/position_cmd_vis", 10, fovCallback);
-  ros::Subscriber cmd_traj_sub = nh.subscribe("/planning/travel_traj", 10, cmdTrajCallback);
-  ros::Subscriber plan_traj_sub = nh.subscribe("/planning_vis/trajectory", 10, planTrajCallback);
-  ros::Subscriber view_sub = nh.subscribe("/planning_vis/viewpoints", 10, viewCallback);
-  ros::Subscriber nbvp_sub = nh.subscribe("/firefly/visualization_marker", 10, nbvpCallback);
+  ros::Subscriber cmd_sub = nh.subscribe("planning/position_cmd_vis", 10, fovCallback);
+  ros::Subscriber cmd_traj_sub = nh.subscribe("planning/travel_traj", 10, cmdTrajCallback);
+  ros::Subscriber plan_traj_sub = nh.subscribe("planning_vis/trajectory", 10, planTrajCallback);
+  ros::Subscriber view_sub = nh.subscribe("planning_vis/viewpoints", 10, viewCallback);
+  ros::Subscriber nbvp_sub = nh.subscribe("firefly/visualization_marker", 10, nbvpCallback);
 
-  marker1_pub_ = nh.advertise<visualization_msgs::Marker>("/process_msg/marker1", 10);
+  marker1_pub_ = nh.advertise<visualization_msgs::Marker>("process_msg/marker1", 10);
 
   nh.param("process_msg/alpha", alpha_, 0.9);
 

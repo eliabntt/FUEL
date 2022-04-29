@@ -30,12 +30,12 @@ void KinoReplanFSM::init(ros::NodeHandle& nh) {
   safety_timer_ = nh.createTimer(ros::Duration(0.05), &KinoReplanFSM::checkCollisionCallback, this);
 
   waypoint_sub_ =
-      nh.subscribe("/waypoint_generator/waypoints", 1, &KinoReplanFSM::waypointCallback, this);
-  odom_sub_ = nh.subscribe("/odom_world", 1, &KinoReplanFSM::odometryCallback, this);
+      nh.subscribe("waypoint_generator/waypoints", 1, &KinoReplanFSM::waypointCallback, this);
+  odom_sub_ = nh.subscribe("odom_world", 1, &KinoReplanFSM::odometryCallback, this);
 
-  replan_pub_ = nh.advertise<std_msgs::Empty>("/planning/replan", 10);
-  new_pub_ = nh.advertise<std_msgs::Empty>("/planning/new", 10);
-  bspline_pub_ = nh.advertise<bspline::Bspline>("/planning/bspline", 10);
+  replan_pub_ = nh.advertise<std_msgs::Empty>("planning/replan", 10);
+  new_pub_ = nh.advertise<std_msgs::Empty>("planning/new", 10);
+  bspline_pub_ = nh.advertise<bspline::Bspline>("planning/bspline", 10);
 }
 
 void KinoReplanFSM::waypointCallback(const nav_msgs::PathConstPtr& msg) {
@@ -45,7 +45,7 @@ void KinoReplanFSM::waypointCallback(const nav_msgs::PathConstPtr& msg) {
   trigger_ = true;
 
   if (target_type_ == TARGET_TYPE::MANUAL_TARGET) {
-    end_pt_ << msg->poses[0].pose.position.x, msg->poses[0].pose.position.y, 1.0;
+    end_pt_ << msg->poses[0].pose.position.x, msg->poses[0].pose.position.y, msg->poses[0].pose.position.z;
   } else if (target_type_ == TARGET_TYPE::PRESET_TARGET) {
     end_pt_(0) = waypoints_[current_wp_][0];
     end_pt_(1) = waypoints_[current_wp_][1];

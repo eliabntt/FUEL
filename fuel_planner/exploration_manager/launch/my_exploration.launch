@@ -1,0 +1,85 @@
+<launch>
+
+    <arg name="mav_name" default="my_robot_0"/>
+    <arg name="namespace" default="$(arg mav_name)"/>
+
+    <!-- size of map, change the size in x, y, z according to your application -->
+    <arg name="box_min_x" default="-10.0"/>
+    <arg name="box_min_y" default="-10.0"/>
+    <arg name="box_min_z" default="-1"/>
+    <arg name="box_max_x" default="10.0"/>
+    <arg name="box_max_y" default="10.0"/>
+    <arg name="box_max_z" default="3.0"/>
+
+    <arg name="map_size_x" value="$(eval 1 * abs(arg('box_max_x') + abs(arg('box_min_x'))))"/>
+    <arg name="map_size_y" value="$(eval 1 * abs(arg('box_max_y') + abs(arg('box_min_y'))))"/>
+    <arg name="map_size_z" value="$(eval 1 * abs(arg('box_max_z') + abs(arg('box_min_z'))))"/>
+
+    <arg name="debug" value="false"/>
+
+    <group ns="$(arg namespace)">
+        <node name="custom_joint_controller_ros" pkg="custom_joint_controller_ros"
+              type="custom_joint_controller_ros_node" respawn="true" clear_params="true" output="log">
+            <rosparam file="$(find custom_joint_controller_ros)/config/config.yaml"/>
+            <param name="odom" value="/$(arg namespace)/odom"/>
+            <param name="setpoint" value="/$(arg namespace)/full_predicted_state"/>
+            <param name="joint_command" value="/$(arg namespace)/joint_commands"/>
+        </node>
+
+        <node name="mav_nonlinear_mpc" pkg="mav_nonlinear_mpc" type="nonlinear_mpc_node" respawn="true"
+              clear_params="true" output="screen">
+            <remap from="odometry" to="/$(arg namespace)/odom"/>
+            <rosparam file="$(find mav_nonlinear_mpc)/resources/nonlinear_mpc_my_robot_0.yaml"/>
+            <rosparam file="$(find mav_disturbance_observer)/resources/disturbance_observer_my_robot_0.yaml"/>
+            <param name="use_rc_teleop" value="false"/>
+            <param name="verbose" value="true"/>
+            <param name="reference_frame" value="world"/>
+        </node>
+
+        <!--         main algorithm params -->
+        <include file="$(find exploration_manager)/launch/my_algorithm.xml">
+            <arg name="debug" value="$(arg debug)"/>
+            <arg name="namespace" default="$(arg mav_name)"/>
+            <arg name="map_size_x_" value="$(arg map_size_x)"/>
+            <arg name="map_size_y_" value="$(arg map_size_y)"/>
+            <arg name="map_size_z_" value="$(arg map_size_z)"/>
+            <arg name="box_min_x" value="$(arg box_min_x)"/>
+            <arg name="box_min_y" value="$(arg box_min_y)"/>
+            <arg name="box_min_z" value="$(arg box_min_z)"/>
+            <arg name="box_max_x" value="$(arg box_max_x)"/>
+            <arg name="box_max_y" value="$(arg box_max_y)"/>
+            <arg name="box_max_z" value="$(arg box_max_z)"/>
+            <arg name="odometry_topic" value="/$(arg namespace)/odom"/>
+            <!-- sensor pose: transform of camera frame in the world frame -->
+            <arg name="sensor_pose_topic" value="/$(arg namespace)/camera/pose"/>
+            <!-- depth topic: depth image, 640x480 by default -->
+            <!-- cloud topic: point cloud measurement  -->
+            <!-- subscribe ONLY TO ONE of the two topics -->
+            <arg name="depth_topic" value="/$(arg namespace)/camera_link/1/depth/image_raw"/>
+            <arg name="cloud_topic" value="/$(arg namespace)/camera_link/1/point_cloud22"/>
+            <arg name="info_topic" value="/$(arg namespace)/camera_link/1/camera_info"/>
+            <!-- intrinsic params of the depth camera -->
+            <!-- not necessary if publishing camera_info -->
+            <arg name="cx" value="640"/>
+            <arg name="cy" value="480"/>
+            <arg name="fx" value="732.99"/>
+            <arg name="fy" value="732.339"/>
+            <!-- maximum velocity and acceleration the drone will reach -->
+            <arg name="max_vel" value="2.0"/>
+            <arg name="max_acc" value="2.0"/>
+        </include>
+        <!---->
+        <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen"
+              respawn="true">
+            <remap from="~odom" to="/$(arg namespace)/odom"/>
+            <remap from="~goal" to="/$(arg namespace)/manual_goal"/>
+            <remap from="~traj_start_trigger" to="/$(arg namespace)/traj_start_trigger"/>
+            <remap from="~waypoints" to="/$(arg namespace)/waypoint_generator/waypoints"/>
+            <remap from="~waypoints_vis" to="/$(arg namespace)/waypoint_generator/waypoints_vis"/>
+            <param name="waypoint_type" value="manual-lonely-waypoint"/>
+        </node>
+
+        <include file="$(find exploration_manager)/launch/rviz.launch"/>
+    </group>
+
+</launch>

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(exploration_manager)
 
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
 
 find_package(Eigen3 REQUIRED)
@@ -28,7 +28,7 @@ catkin_package(
  INCLUDE_DIRS include
  LIBRARIES exploration_manager
  CATKIN_DEPENDS plan_env path_searching bspline bspline_opt active_perception traj_utils lkh_tsp_solver plan_manage
-#  DEPENDS system_lib
+        #  DEPENDS system_lib
 )
 
 include_directories(
@@ -45,7 +45,7 @@ add_executable(exploration_node
   src/fast_exploration_fsm.cpp
   src/fast_exploration_manager.cpp
   )
-target_link_libraries(exploration_node 
+target_link_libraries(exploration_node
   ${catkin_LIBRARIES}
   # -ldw
   )

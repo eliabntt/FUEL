@@ -31,13 +31,13 @@ int main(int argc, char** argv) {
 
   file_path = argv[1];
 
-  // ros::Subscriber cloud_sub = node.subscribe("/map_generator/global_cloud",
+  // ros::Subscriber cloud_sub = node.subscribe("map_generator/global_cloud",
   // 10, cloudCallback);
   // ros::Subscriber cloud_sub =
-  // node.subscribe("/firefly/nbvPlanner/octomap_pcl", 10, cloudCallback);
+  // node.subscribe("firefly/nbvPlanner/octomap_pcl", 10, cloudCallback);
 
   // Generate map by clicking
-  ros::Subscriber cloud_sub = node.subscribe("/map_generator/click_map", 10, cloudCallback);
+  ros::Subscriber cloud_sub = node.subscribe("map_generator/click_map", 10, cloudCallback);
   ros::Duration(1.0).sleep();
 
   while (ros::ok()) {

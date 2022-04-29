@@ -30,12 +30,12 @@ void LocalExploreFSM::init(ros::NodeHandle& nh) {
   safety_timer_ = nh.createTimer(ros::Duration(0.05), &LocalExploreFSM::checkCollisionCallback, this);
 
   waypoint_sub_ =
-      nh.subscribe("/waypoint_generator/waypoints", 1, &LocalExploreFSM::waypointCallback, this);
-  odom_sub_ = nh.subscribe("/odom_world", 1, &LocalExploreFSM::odometryCallback, this);
+      nh.subscribe("waypoint_generator/waypoints", 1, &LocalExploreFSM::waypointCallback, this);
+  odom_sub_ = nh.subscribe("odom_world", 1, &LocalExploreFSM::odometryCallback, this);
 
-  replan_pub_ = nh.advertise<std_msgs::Empty>("/planning/replan", 10);
-  new_pub_ = nh.advertise<std_msgs::Empty>("/planning/new", 10);
-  bspline_pub_ = nh.advertise<bspline::Bspline>("/planning/bspline", 10);
+  replan_pub_ = nh.advertise<std_msgs::Empty>("planning/replan", 10);
+  new_pub_ = nh.advertise<std_msgs::Empty>("planning/new", 10);
+  bspline_pub_ = nh.advertise<bspline::Bspline>("planning/bspline", 10);
 }
 
 void LocalExploreFSM::waypointCallback(const nav_msgs::PathConstPtr& msg) {

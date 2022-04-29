@@ -4,6 +4,7 @@
 #include <Eigen/Eigen>
 #include <vector>
 #include <bspline/Bspline.h>
+#include <geometry_msgs/Twist.h>
 
 using std::vector;
 using Eigen::Vector3d;
@@ -11,16 +12,19 @@ using Eigen::Vector3d;
 namespace fast_planner {
 struct FSMData {
   // FSM data
-  bool trigger_, have_odom_, static_state_;
+  bool trigger_, have_odom_, static_state_, manual_;
   vector<string> state_str_;
 
-  Eigen::Vector3d odom_pos_, odom_vel_;  // odometry state
+  Eigen::Vector3d odom_pos_, odom_vel_, end_pt_, end_vel_;  // odometry state
   Eigen::Quaterniond odom_orient_;
   double odom_yaw_;
+	double end_yaw_;
 
   Eigen::Vector3d start_pt_, start_vel_, start_acc_, start_yaw_;  // start state
   vector<Eigen::Vector3d> start_poss;
   bspline::Bspline newest_traj_;
+	vector<geometry_msgs::Twist> newest_velocities_;
+	vector<geometry_msgs::Twist> newest_accelerations_;
 };
 
 struct FSMParam {

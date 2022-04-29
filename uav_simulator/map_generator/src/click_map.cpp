@@ -71,9 +71,9 @@ int main(int argc, char** argv) {
   n.param("map/len2", len2_, 0.15);
 
   all_map_pub_ =
-      n.advertise<sensor_msgs::PointCloud2>("/map_generator/click_map", 1);
+      n.advertise<sensor_msgs::PointCloud2>("map_generator/click_map", 1);
 
-  click_sub_ = n.subscribe("/move_base_simple/goal", 10, clickCallback);
+  click_sub_ = n.subscribe("move_base_simple/goal", 10, clickCallback);
 
   ros::Duration(0.5).sleep();
 

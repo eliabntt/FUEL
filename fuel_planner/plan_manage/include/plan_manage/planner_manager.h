@@ -53,12 +53,12 @@ public:
   EDTEnvironment::Ptr edt_environment_;
   unique_ptr<Astar> path_finder_;
   unique_ptr<TopologyPRM> topo_prm_;
+	unique_ptr<KinodynamicAstar> kino_path_finder_;
 
 private:
   /* main planning algorithms & modules */
   shared_ptr<SDFMap> sdf_map_;
 
-  unique_ptr<KinodynamicAstar> kino_path_finder_;
   vector<BsplineOptimizer::Ptr> bspline_optimizers_;
 
   void updateTrajInfo();
@@ -100,8 +100,9 @@ private:
 public:
   bool localExplore(Eigen::Vector3d start_pt, Eigen::Vector3d start_vel, Eigen::Vector3d start_acc,
                     Eigen::Vector3d end_pt);
+		bool is_doing_360_;
 
-  // !SECTION
+		// !SECTION
 };
 }  // namespace fast_planner
 

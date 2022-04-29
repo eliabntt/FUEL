@@ -62,11 +62,11 @@ int main(int argc, char** argv) {
   ros::NodeHandle node("~");
 
   // receive planning problem
-  ros::Subscriber map_sub = node.subscribe("/laser_cloud_surround", 1, mapCallback);
-  ros::Subscriber sg_sub = node.subscribe("/start_goal", 1, sgCallback);
+  ros::Subscriber map_sub = node.subscribe("laser_cloud_surround", 1, mapCallback);
+  ros::Subscriber sg_sub = node.subscribe("start_goal", 1, sgCallback);
 
   // inform benchmark problem node of finishing
-  ros::Publisher finish_pub = node.advertise<std_msgs::Empty>("/finish_test", 1, true);
+  ros::Publisher finish_pub = node.advertise<std_msgs::Empty>("finish_test", 1, true);
 
   srand(ros::Time::now().toSec());
   ros::Duration(0.5).sleep();

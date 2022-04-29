@@ -6,7 +6,7 @@
 
   <arg name="init_x" value="0"/>
   <arg name="init_y" value="0"/>
-  <arg name="init_z" value="1.0"/> 
+  <arg name="init_z" value="1.0"/>
 
   <!-- topic of your odometry such as VIO or LIO -->
   <arg name="odom_topic" value="/state_ukf/odom" />
@@ -27,12 +27,12 @@
 
     <arg name="odometry_topic" value="$(arg odom_topic)"/>
     <!-- sensor pose: transform of camera frame in the world frame -->
-    <arg name="sensor_pose_topic" value="/pcl_render_node/sensor_pose"/>
+    <arg name="sensor_pose_topic" value="pcl_render_node/sensor_pose"/>
     <!-- depth topic: depth image, 640x480 by default -->
     <!-- cloud topic: point cloud measurement  -->
     <!-- subscribe ONLY TO ONE of the two topics -->
-    <arg name="depth_topic" value="/pcl_render_node/depth"/>
-    <arg name="cloud_topic" value="/pcl_render_node/cloud"/>
+    <arg name="depth_topic" value="pcl_render_node/depth"/>
+    <arg name="cloud_topic" value="pcl_render_node/cloud"/>
 
     <!-- intrinsic params of the depth camera -->
     <arg name="cx" value="321.04638671875"/>
@@ -45,9 +45,10 @@
     <arg name="max_acc" value="2.0" />
   </include>
 
+  <group ns="exploration_node">
   <!-- trajectory server -->
   <node pkg="plan_manage" name="traj_server" type="traj_server" output="screen">
-    <remap from="/position_cmd" to="planning/pos_cmd"/>
+    <remap from="position_cmd" to="~planning/pos_cmd"/>
 
     <remap from="/odom_world" to="$(arg odom_topic)"/>
     <param name="traj_server/time_forward" value="1.5" type="double"/>
@@ -61,17 +62,18 @@
     <param name="perception_utils/right_angle" value="0.68901" type="double"/>
     <param name="perception_utils/max_dist" value="4.5" type="double"/>
     <param name="perception_utils/vis_dist" value="1.0" type="double"/>
-    
+
 
   </node>
 
   <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
-    <remap from="~odom" to="$(arg odom_topic)"/>        
+    <remap from="~odom" to="$(arg odom_topic)"/>
     <remap from="~goal" to="/move_base_simple/goal"/>
     <remap from="~traj_start_trigger" to="/traj_start_trigger" />
-    <param name="waypoint_type" value="point"/>    
+    <param name="waypoint_type" value="point"/>
   </node>
 
+  </group>
   <!-- use simulator -->
   <include file="$(find exploration_manager)/launch/simulator.xml">
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
@@ -86,5 +88,4 @@
     <arg name="c_num" value="0"/>
     <arg name="p_num" value="130"/>
   </include>
-
 </launch>

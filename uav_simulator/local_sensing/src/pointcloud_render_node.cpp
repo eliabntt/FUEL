@@ -201,8 +201,8 @@ int main(int argc, char** argv)
   odom_sub = nh.subscribe("odometry", 50, rcvOdometryCallbck);
 
   // publisher depth image and color image
-  pub_cloud = nh.advertise<sensor_msgs::PointCloud2>("/pcl_render_node/cloud", 10);
-  pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/pcl_render_node/sensor_pose", 10);
+  pub_cloud = nh.advertise<sensor_msgs::PointCloud2>("cloud", 10);
+  pub_pose = nh.advertise<geometry_msgs::PoseStamped>("sensor_pose", 10);
   double sensing_duration = 1.0 / sensing_rate;
   double estimate_duration = 1.0 / estimation_rate;
   local_sensing_timer = nh.createTimer(ros::Duration(sensing_duration), renderSensedPoints);

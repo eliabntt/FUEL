@@ -19,7 +19,7 @@ class FrontierFinder;
 struct ExplorationParam;
 struct ExplorationData;
 
-enum EXPL_RESULT { NO_FRONTIER, FAIL, SUCCEED };
+enum EXPL_RESULT { NO_FRONTIER, FAIL, SUCCEED, DO360 };
 
 class FastExplorationManager {
 public:
@@ -40,7 +40,8 @@ public:
   shared_ptr<FastPlannerManager> planner_manager_;
   shared_ptr<FrontierFinder> frontier_finder_;
   // unique_ptr<ViewFinder> view_finder_;
-
+  computePath(double next_yaw, Eigen::Vector3d yaw, Eigen::Vector3d pos, Eigen::Vector3d next_pos,
+                                      Eigen::Vector3d vel, Eigen::Vector3d acc, ros::Time t2);
 private:
   shared_ptr<EDTEnvironment> edt_environment_;
   shared_ptr<SDFMap> sdf_map_;
@@ -55,7 +56,7 @@ private:
                        vector<Vector3d>& refined_pts, vector<double>& refined_yaws);
 
   void shortenPath(vector<Vector3d>& path);
-
+	bool has_done_360_ = false;
 public:
   typedef shared_ptr<FastExplorationManager> Ptr;
 };

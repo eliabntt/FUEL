@@ -390,9 +390,9 @@ int main(int argc, char** argv)
   odom_sub = nh.subscribe("odometry", 50, rcvOdometryCallbck);
 
   // publisher depth image and color image
-  pub_depth = nh.advertise<sensor_msgs::Image>("/pcl_render_node/depth", 1000);
+  pub_depth = nh.advertise<sensor_msgs::Image>("depth", 1000);
   pub_color = nh.advertise<sensor_msgs::Image>("colordepth", 1000);
-  pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/pcl_render_node/sensor_pose", 1000);
+  pub_pose = nh.advertise<geometry_msgs::PoseStamped>("sensor_pose", 1000);
   pub_pcl_wolrd = nh.advertise<sensor_msgs::PointCloud2>("rendered_pcl", 1);
   pub_caminfo = nh.advertise<sensor_msgs::CameraInfo>("camera_info", 10);
 

@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle node;
 
   // -------------------ros initialization---------------------
-  poly_traj_pub = node.advertise<visualization_msgs::Marker>("/gradient_based/traj", 10, true);
+  poly_traj_pub = node.advertise<visualization_msgs::Marker>("gradient_based/traj", 10, true);
 
   srand(ros::Time::now().toSec());
   ros::Duration(0.5).sleep();

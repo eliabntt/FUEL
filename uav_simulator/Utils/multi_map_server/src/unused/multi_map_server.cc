@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
   ros::Subscriber sub1 = n.subscribe("dmap2d",       100, map2d_callback);
   ros::Subscriber sub2 = n.subscribe("scan",         100, scan_callback);
-  ros::Subscriber sub3 = n.subscribe("/maps_origin", 100, maps_origin_callback);
+  ros::Subscriber sub3 = n.subscribe("maps_origin", 100, maps_origin_callback);
   pub1 = n.advertise<multi_map_server::MultiOccupancyGrid>("dmaps2d", 10, true); 
   pub2 = n.advertise<multi_map_server::MultiSparseMap3D>(  "dmaps3d", 10, true); 
 

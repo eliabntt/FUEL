@@ -55,10 +55,10 @@ int main(int argc, char** argv) {
   node.param("obj_generator/scale2", _scale2, 2.5);
   node.param("obj_generator/interval", _interval, 2.5);
 
-  obj_pub = node.advertise<visualization_msgs::Marker>("/dynamic/obj", 10);
+  obj_pub = node.advertise<visualization_msgs::Marker>("dynamic/obj", 10);
   for (int i = 0; i < obj_num; ++i) {
     ros::Publisher pose_pub =
-        node.advertise<geometry_msgs::PoseStamped>("/dynamic/pose_" + to_string(i), 10);
+        node.advertise<geometry_msgs::PoseStamped>("dynamic/pose_" + to_string(i), 10);
     pose_pubs.push_back(pose_pub);
   }
 

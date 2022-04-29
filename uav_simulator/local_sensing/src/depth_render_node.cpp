@@ -195,8 +195,8 @@ int main(int argc, char** argv) {
   odom_sub = nh.subscribe("odometry", 50, odometryCallbck);
 
   // publisher depth image and color image
-  pub_depth = nh.advertise<sensor_msgs::Image>("/pcl_render_node/depth", 1000);
-  pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/pcl_render_node/sensor_pose", 1000);
+  pub_depth = nh.advertise<sensor_msgs::Image>("depth", 1000);
+  pub_pose = nh.advertise<geometry_msgs::PoseStamped>("sensor_pose", 1000);
 
   double sensing_duration = 1.0 / sensing_rate;
   double estimate_duration = 1.0 / estimation_rate;

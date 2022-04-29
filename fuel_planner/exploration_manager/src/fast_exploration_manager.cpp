@@ -96,7 +96,7 @@ int FastExplorationManager::planExploreMotion(
             << ", acc: " << acc.transpose() << std::endl;
 
   // Search frontiers and group them into clusters
-  frontier_finder_->searchFrontiers();
+	frontier_finder_->searchFrontiers();
 
   double frontier_time = (ros::Time::now() - t1).toSec();
   t1 = ros::Time::now();
@@ -108,7 +108,11 @@ int FastExplorationManager::planExploreMotion(
   frontier_finder_->getDormantFrontiers(ed_->dead_frontiers_);
 
   if (ed_->frontiers_.empty()) {
-    ROS_WARN("No coverable frontier.");
+    ROS_WARN("No coverable frontier. Try with a 360 degree view.");
+	  if (!has_done_360_) {
+//		  has_done_360_ = true;
+		  return DO360;
+	  }
     return NO_FRONTIER;
   }
   frontier_finder_->getTopViewpointsInfo(pos, ed_->points_, ed_->yaws_, ed_->averages_);
@@ -221,74 +225,89 @@ int FastExplorationManager::planExploreMotion(
     ROS_ERROR("Empty destination.");
 
   std::cout << "Next view: " << next_pos.transpose() << ", " << next_yaw << std::endl;
+	return computePath(next_yaw, yaw, pos, next_pos, vel, acc, t2);
+}
 
-  // Plan trajectory (position and yaw) to the next viewpoint
-  t1 = ros::Time::now();
+int FastExplorationManager::computePath(double next_yaw, Eigen::Vector3d yaw, Eigen::Vector3d pos, Eigen::Vector3d next_pos,
+																				Eigen::Vector3d vel, Eigen::Vector3d acc, ros::Time t2) {
 
-  // Compute time lower bound of yaw and use in trajectory generation
-  double diff = fabs(next_yaw - yaw[0]);
-  double time_lb = min(diff, 2 * M_PI - diff) / ViewNode::yd_;
+	// Plan trajectory (position and yaw) to the next viewpoint
+	ros::Time t1 = ros::Time::now();
 
-  // Generate trajectory of x,y,z
-  planner_manager_->path_finder_->reset();
-  if (planner_manager_->path_finder_->search(pos, next_pos) != Astar::REACH_END) {
-    ROS_ERROR("No path to next viewpoint");
-    return FAIL;
-  }
-  ed_->path_next_goal_ = planner_manager_->path_finder_->getPath();
-  shortenPath(ed_->path_next_goal_);
+	// Compute time lower bound of yaw and use in trajectory generation
+	double diff = fabs(next_yaw - yaw[0]);
+	double time_lb = min(diff, 2 * M_PI - diff) / ViewNode::yd_;
 
-  const double radius_far = 5.0;
-  const double radius_close = 1.5;
-  const double len = Astar::pathLength(ed_->path_next_goal_);
-  if (len < radius_close) {
-    // Next viewpoint is very close, no need to search kinodynamic path, just use waypoints-based
-    // optimization
-    planner_manager_->planExploreTraj(ed_->path_next_goal_, vel, acc, time_lb);
-    ed_->next_goal_ = next_pos;
+	// Generate trajectory of x,y,z
+	planner_manager_->path_finder_->reset();
+	if (planner_manager_->path_finder_->search(pos, next_pos) != Astar::REACH_END) {
+		ROS_ERROR("No path to next viewpoint");
+		if (!has_done_360_) {
+			ROS_WARN("Try 360");
+//		  has_done_360_ = true;
+			return DO360;
+		}
+		return FAIL;
+	}
+	ed_->path_next_goal_ = planner_manager_->path_finder_->getPath();
+	shortenPath(ed_->path_next_goal_);
 
-  } else if (len > radius_far) {
-    // Next viewpoint is far away, select intermediate goal on geometric path (this also deal with
-    // dead end)
-    std::cout << "Far goal." << std::endl;
-    double len2 = 0.0;
-    vector<Eigen::Vector3d> truncated_path = { ed_->path_next_goal_.front() };
-    for (int i = 1; i < ed_->path_next_goal_.size() && len2 < radius_far; ++i) {
-      auto cur_pt = ed_->path_next_goal_[i];
-      len2 += (cur_pt - truncated_path.back()).norm();
-      truncated_path.push_back(cur_pt);
-    }
-    ed_->next_goal_ = truncated_path.back();
-    planner_manager_->planExploreTraj(truncated_path, vel, acc, time_lb);
-    // if (!planner_manager_->kinodynamicReplan(
-    //         pos, vel, acc, ed_->next_goal_, Vector3d(0, 0, 0), time_lb))
-    //   return FAIL;
-    // ed_->kino_path_ = planner_manager_->kino_path_finder_->getKinoTraj(0.02);
-  } else {
-    // Search kino path to exactly next viewpoint and optimize
-    std::cout << "Mid goal" << std::endl;
-    ed_->next_goal_ = next_pos;
+	const double radius_far = 5.0;
+	const double radius_close = 1.5;
+	const double len = Astar::pathLength(ed_->path_next_goal_);
+	if (len < radius_close) {
+		// Next viewpoint is very close, no need to search kinodynamic path, just use waypoints-based
+		// optimization
+		planner_manager_->planExploreTraj(ed_->path_next_goal_, vel, acc, time_lb);
+		ed_->next_goal_ = next_pos;
 
-    if (!planner_manager_->kinodynamicReplan(
-            pos, vel, acc, ed_->next_goal_, Vector3d(0, 0, 0), time_lb))
-      return FAIL;
-  }
+	} else if (len > radius_far) {
+		// Next viewpoint is far away, select intermediate goal on geometric path (this also deal with
+		// dead end)
+		std::cout << "Far goal." << std::endl;
+		double len2 = 0.0;
+		vector<Eigen::Vector3d> truncated_path = { ed_->path_next_goal_.front() };
+		for (int i = 1; i < ed_->path_next_goal_.size() && len2 < radius_far; ++i) {
+			auto cur_pt = ed_->path_next_goal_[i];
+			len2 += (cur_pt - truncated_path.back()).norm();
+			truncated_path.push_back(cur_pt);
+		}
+		ed_->next_goal_ = truncated_path.back();
+		planner_manager_->planExploreTraj(truncated_path, vel, acc, time_lb);
+	} else {
+		// Search kino path to exactly next viewpoint and optimize
+		std::cout << "Mid goal" << std::endl;
+		ed_->next_goal_ = next_pos;
 
-  if (planner_manager_->local_data_.position_traj_.getTimeSum() < time_lb - 0.1)
-    ROS_ERROR("Lower bound not satified!");
+		if (!planner_manager_->kinodynamicReplan(
+			pos, vel, acc, ed_->next_goal_, Vector3d(0, 0, 0), time_lb)) {
+			if (!has_done_360_) {
+//		    has_done_360_ = true;
+				ROS_WARN("Try 360");
+				return DO360;
+			}
+			return FAIL;
+		}
+	}
 
-  planner_manager_->planYawExplore(yaw, next_yaw, true, ep_->relax_time_);
+	if (planner_manager_->local_data_.position_traj_.getTimeSum() < time_lb - 0.1) {
+		ROS_ERROR("Lower bound not satified!");
+		return DO360;
+	}
 
-  double traj_plan_time = (ros::Time::now() - t1).toSec();
-  t1 = ros::Time::now();
+	planner_manager_->planYawExplore(yaw, next_yaw, true, ep_->relax_time_);
 
-  double yaw_time = (ros::Time::now() - t1).toSec();
-  ROS_WARN("Traj: %lf, yaw: %lf", traj_plan_time, yaw_time);
-  double total = (ros::Time::now() - t2).toSec();
-  ROS_WARN("Total time: %lf", total);
-  ROS_ERROR_COND(total > 0.1, "Total time too long!!!");
+	double traj_plan_time = (ros::Time::now() - t1).toSec();
+	t1 = ros::Time::now();
 
-  return SUCCEED;
+	double yaw_time = (ros::Time::now() - t1).toSec();
+	ROS_WARN("Traj: %lf, yaw: %lf", traj_plan_time, yaw_time);
+	double total = (ros::Time::now() - t2).toSec();
+	ROS_WARN("Total time: %lf", total);
+	ROS_ERROR_COND(total > 0.1, "Total time too long!!!");
+	has_done_360_ = false; // reset 360 flag
+
+	return SUCCEED;
 }
 
 void FastExplorationManager::shortenPath(vector<Vector3d>& path) {

@@ -14,6 +14,7 @@
   <arg name="sensor_pose_topic"/>
   <arg name="depth_topic"/>
   <arg name="cloud_topic"/>
+  <arg name="info_topic"/>
 
   <arg name="cx"/>
   <arg name="cy"/>
@@ -23,32 +24,41 @@
   <arg name="max_vel"/>
   <arg name="max_acc"/>
 
+  <arg name="namespace"/>
+  <arg name="debug" default="true" />
   <!-- main node -->
-  <node pkg="exploration_manager" name="exploration_node" type="exploration_node" output="screen">
+  <arg  name="launch_prefix" value="gdb -x --ex run --args" if="$(arg debug)"/>
+  <arg  name="launch_prefix" value="" unless="$(arg debug)"/>
+  <node pkg="exploration_manager" name="exploration_node" type="exploration_node" output="screen" launch-prefix="$(arg launch_prefix)" respawn="true">
+    <remap from="~command/trajectory" to="/$(arg namespace)/command/trajectory"/>
+
     <remap from ="~odom_world" to="$(arg odometry_topic)"/>
+<!--    <remap from ="/odom_world" to="$(arg odometry_topic)"/>-->
     <remap from ="~map_ros/pose"   to = "$(arg sensor_pose_topic)"/>
     <remap from ="~map_ros/depth" to = "$(arg depth_topic)"/>
     <remap from ="~map_ros/cloud" to="$(arg cloud_topic)"/>
-    <remap from ="~waypoint_generator/waypoints" to="/waypoint_generator/waypoints"/>
+    <remap from ="~map_ros/info" to="$(arg info_topic)"/>
 
-    <param name="sdf_map/resolution"      value="0.1" /> 
-    <param name="sdf_map/map_size_x"   value="40" />
-    <param name="sdf_map/map_size_y"   value="20" />
-    <param name="sdf_map/map_size_z"   value="5" />
-    <param name="sdf_map/obstacles_inflation"     value="0.009" />
-<!--    <param name="sdf_map/obstacles_inflation"     value="0.199" /> -->
+    <remap from ="~waypoint_generator/waypoints" to="/$(arg namespace)/waypoint_generator/waypoints"/>
+
+    <param name="sdf_map/resolution"      value="0.1" />
+    <param name="sdf_map/map_size_x"   value="$(arg map_size_x_)" />
+    <param name="sdf_map/map_size_y"   value="$(arg map_size_y_)" />
+    <param name="sdf_map/map_size_z"   value="$(arg map_size_z_)" />
+    <!-- <param name="sdf_map/obstacles_inflation"     value="0.099" />  -->
+    <param name="sdf_map/obstacles_inflation"     value="0.199" />
     <param name="sdf_map/local_bound_inflate"    value="0.5"/>
     <param name="sdf_map/local_map_margin" value="50"/>
     <param name="sdf_map/ground_height"        value="-1.0"/>
-    <param name="sdf_map/default_dist"        value="5.0"/>
-    
+    <param name="sdf_map/default_dist"        value="0.0"/>
+
     <param name="sdf_map/p_hit"  value="0.65"/>
     <param name="sdf_map/p_miss" value="0.35"/>
     <param name="sdf_map/p_min"  value="0.12"/>
     <param name="sdf_map/p_max"  value="0.90"/>
     <param name="sdf_map/p_occ"  value="0.80"/>
-    <param name="sdf_map/min_ray_length" value="0.5"/>
-    <param name="sdf_map/max_ray_length" value="4.5"/>
+    <param name="sdf_map/min_ray_length" value="0.1"/>
+    <param name="sdf_map/max_ray_length" value="8"/>
     <param name="sdf_map/virtual_ceil_height"   value="-10"/>
     <param name="sdf_map/optimistic" value="false" type="bool"/>
     <param name="sdf_map/signed_dist" value="false" type="bool"/>
@@ -63,13 +73,13 @@
     <param name="map_ros/cy" value="$(arg cy)"/>
     <param name="map_ros/fx" value="$(arg fx)"/>
     <param name="map_ros/fy" value="$(arg fy)"/>
-    <param name="map_ros/depth_filter_maxdist"   value="5.0"/>
-    <param name="map_ros/depth_filter_mindist"   value="0.2"/>
+    <param name="map_ros/depth_filter_maxdist"   value="10.0"/>
+    <param name="map_ros/depth_filter_mindist"   value="0.1"/>
     <param name="map_ros/depth_filter_margin"    value="2"/>
-    <param name="map_ros/k_depth_scaling_factor" value="1000.0"/>
+    <param name="map_ros/k_depth_scaling_factor" value="100.0"/>
     <param name="map_ros/skip_pixel" value="2"/>
-    <param name="map_ros/esdf_slice_height" value="0.3"/>
-    <param name="map_ros/visualization_truncate_height"   value="3.09"/>
+    <param name="map_ros/esdf_slice_height" value="0.1"/>
+    <param name="map_ros/visualization_truncate_height"   value="10.09"/>
     <param name="map_ros/visualization_truncate_low"   value="-2.0"/>
     <param name="map_ros/show_occ_time"  value="false"/>
     <param name="map_ros/show_esdf_time" value="false"/>
@@ -78,8 +88,8 @@
 
     <!-- Fsm -->
     <param name="fsm/thresh_replan1" value="0.2" type="double"/>
-    <param name="fsm/thresh_replan2" value="0.5" type="double"/>
-    <param name="fsm/thresh_replan3" value="0.7" type="double"/>
+    <param name="fsm/thresh_replan2" value="0.7" type="double"/>
+    <param name="fsm/thresh_replan3" value="0.5" type="double"/>
 
     <!-- <param name="fsm/thresh_replan1" value="0.00001" type="double"/> -->
     <!-- <param name="fsm/thresh_replan2" value="100.0" type="double"/> -->
@@ -101,7 +111,6 @@
     <param name="exploration/tsp_dir" value="$(find lkh_tsp_solver)/resource" type="string"/>
     <param name="exploration/relax_time" value="1.0" type="double"/>
 
-
     <param name="frontier/cluster_min" value="10" type="int"/>
     <param name="frontier/cluster_size_xy" value="2.0" type="double"/>
     <param name="frontier/cluster_size_z" value="10.0" type="double"/>
@@ -116,12 +125,11 @@
     <param name="frontier/min_view_finish_fraction" value="0.2" type="double"/>;
 
     <!-- Perception utils -->
-    <param name="perception_utils/top_angle" value="0.56125" type="double"/>;
-    <param name="perception_utils/left_angle" value="0.69222" type="double"/>;
-    <param name="perception_utils/right_angle" value="0.68901" type="double"/>;
-    <param name="perception_utils/max_dist" value="4.5" type="double"/>;
-    <param name="perception_utils/vis_dist" value="1.0" type="double"/>;
-
+    <param name="perception_utils/top_angle" value="1.54" type="double"/>;
+    <param name="perception_utils/left_angle" value="0.74" type="double"/>;
+    <param name="perception_utils/right_angle" value="0.7" type="double"/>;
+    <param name="perception_utils/max_dist" value="8" type="double"/>;
+    <param name="perception_utils/vis_dist" value="8.0" type="double"/>;
 
     <param name="heading_planner/yaw_diff" value="$(eval 30 * 3.1415926 / 180.0)" type="double"/>
     <param name="heading_planner/half_vert_num" value="5" type="int"/>
@@ -131,7 +139,7 @@
     <param name="heading_planner/w" value="20000.0" type="double"/>
     <param name="heading_planner/weight_type" value="1" type="double"/>
 
-    <!-- planner manager -->
+  <!-- planner manager -->
     <!-- <param name="manager/max_vel" value="$(arg max_vel)" type="double"/> -->
     <param name="manager/max_vel" value="$(arg max_vel)" type="double"/>
     <param name="manager/max_acc" value="$(arg max_acc)" type="double"/>
@@ -139,22 +147,22 @@
     <param name="manager/dynamic_environment" value="0" type="int"/>
     <param name="manager/local_segment_length" value="6.0" type="double"/>
     <param name="manager/clearance_threshold" value="0.2" type="double"/>
-    <param name="manager/control_points_distance" value="0.5" type="double"/>
+    <param name="manager/control_points_distance" value="0.35" type="double"/>
     <param name="manager/use_geometric_path" value="true" type="bool"/>
     <param name="manager/use_kinodynamic_path" value="true" type="bool"/>
     <param name="manager/use_topo_path" value="true" type="bool"/>
     <param name="manager/use_optimization" value="true" type="bool"/>
-    <param name="manager/use_active_perception" value="false" type="bool"/>
+    <param name="manager/use_active_perception" value="true" type="bool"/>
     <param name="manager/min_time" value="true" type="bool"/>
 
-    <!-- kinodynamic path searching -->
+  <!-- kinodynamic path searching -->
     <param name="search/max_tau" value="0.8" type="double"/>
     <param name="search/init_max_tau" value="1.0" type="double"/>
     <param name="search/max_vel" value="$(arg max_vel)" type="double"/>
     <param name="search/vel_margin" value="0.25" type="double"/>
     <param name="search/max_acc" value="$(arg max_acc)" type="double"/>
     <param name="search/w_time" value="10.0" type="double"/>
-    <param name="search/horizon" value="7.0" type="double"/>
+    <param name="search/horizon" value="5.0" type="double"/>
     <param name="search/lambda_heu" value="10.0" type="double"/>
     <param name="search/resolution_astar" value="0.025" type="double"/>
     <param name="search/time_resolution" value="0.8" type="double"/>

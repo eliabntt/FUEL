@@ -285,13 +285,13 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "random_map_sensing");
   ros::NodeHandle n("~");
 
-  _local_map_pub = n.advertise<sensor_msgs::PointCloud2>("/map_generator/local_cloud", 1);
-  _all_map_pub = n.advertise<sensor_msgs::PointCloud2>("/map_generator/global_cloud", 1);
+  _local_map_pub = n.advertise<sensor_msgs::PointCloud2>("map_generator/local_cloud", 1);
+  _all_map_pub = n.advertise<sensor_msgs::PointCloud2>("map_generator/global_cloud", 1);
 
   _odom_sub = n.subscribe("odometry", 50, rcvOdometryCallbck);
 
-  click_map_pub_ = n.advertise<sensor_msgs::PointCloud2>("/pcl_render_node/local_map", 1);
-  ros::Subscriber click_sub = n.subscribe("/goal", 10, clickCallback);
+  click_map_pub_ = n.advertise<sensor_msgs::PointCloud2>("pcl_render_node/local_map", 1);
+  ros::Subscriber click_sub = n.subscribe("goal", 10, clickCallback);
 
   n.param("init_state_x", _init_x, 0.0);
   n.param("init_state_y", _init_y, 0.0);

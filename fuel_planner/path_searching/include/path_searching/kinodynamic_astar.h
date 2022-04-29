@@ -112,7 +112,6 @@ private:
   double w_time_, horizon_, lambda_heu_;
   int allocate_num_, check_num_;
   double tie_breaker_;
-  bool optimistic_;
 
   /* map */
   double resolution_, inv_resolution_, time_resolution_, inv_time_resolution_;
@@ -135,7 +134,9 @@ private:
                     Eigen::Vector3d um, double tau);
 
 public:
-  KinodynamicAstar(){};
+	bool optimistic_;
+
+	KinodynamicAstar(){};
   ~KinodynamicAstar();
 
   enum { REACH_HORIZON = 1, REACH_END = 2, NO_PATH = 3, NEAR_END = 4 };

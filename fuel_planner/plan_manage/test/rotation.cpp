@@ -11,8 +11,8 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "rotation");
   ros::NodeHandle node("~");
 
-  ros::Publisher odom_pub = node.advertise<nav_msgs::Odometry>("/rotation/odom", 10);
-  ros::Publisher mark_pub = node.advertise<visualization_msgs::Marker>("/rotation/point", 10);
+  ros::Publisher odom_pub = node.advertise<nav_msgs::Odometry>("rotation/odom", 10);
+  ros::Publisher mark_pub = node.advertise<visualization_msgs::Marker>("rotation/point", 10);
   ros::Duration(1.0).sleep();
 
   // write the euler angle represented rotation matrix

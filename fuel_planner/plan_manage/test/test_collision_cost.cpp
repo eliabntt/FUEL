@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   node.param("bspline/limit_acc", NonUniformBspline::limit_acc_, -1.0);
   node.param("bspline/limit_ratio", NonUniformBspline::limit_ratio_, -1.0);
 
-  ros::Publisher map_pub = node.advertise<sensor_msgs::PointCloud2>("/test_collision/map", 10, true);
+  ros::Publisher map_pub = node.advertise<sensor_msgs::PointCloud2>("test_collision/map", 10, true);
 
   PlanningVisualization::Ptr visualizer;
   visualizer.reset(new PlanningVisualization(node));

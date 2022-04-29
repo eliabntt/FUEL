@@ -133,7 +133,6 @@ void odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
                 pose_stamped.pose.orientation.y % pose_stamped.pose.orientation.z
            << std::endl;
       }
-      ROS_INFO_STREAM(ss.str());
 
       publish_waypoints_vis();
       publish_waypoints();
@@ -213,7 +212,7 @@ void traj_start_trigger_callback(const geometry_msgs::PoseStamped& msg) {
   }
 
   ROS_WARN("[waypoint_generator] Trigger!");
-  trigged_time = odom.header.stamp;
+  trigged_time = msg.header.stamp;
   ROS_ASSERT(trigged_time > ros::Time(0));
 
   ros::NodeHandle n("~");
@@ -232,13 +231,20 @@ void traj_start_trigger_callback(const geometry_msgs::PoseStamped& msg) {
     waypoints = eight();
     publish_waypoints_vis();
     publish_waypoints();
-  } else if (waypoint_type == string("point")) {
-    waypoints = point();
-    publish_waypoints_vis();
-    publish_waypoints();
-  } else if (waypoint_type == string("series")) {
+  }  else if (waypoint_type == string("series")) {
     load_waypoints(n, trigged_time);
+  } else if (waypoint_type == string("point")) {
+	  waypoints = point();
+	  publish_waypoints_vis();
+	  publish_waypoints();
   }
+	else {
+	  geometry_msgs::PoseStamped pt = msg;
+	  waypoints.poses.clear();
+	  waypoints.poses.push_back(pt);
+	  publish_waypoints_vis();
+	  publish_waypoints();
+	}
 }
 
 int main(int argc, char** argv) {
