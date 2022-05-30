@@ -51,8 +51,10 @@ private:
   ros::NodeHandle node_;
   ros::Timer exec_timer_, safety_timer_, vis_timer_, frontier_timer_;
   ros::Subscriber trigger_sub_, odom_sub_, manual_goal_sub_;
-  ros::Publisher replan_pub_, new_pub_, bspline_pub_, trajectory_pub_, state_pub_, nmpc_pose_pub_;
+  ros::Publisher replan_pub_, new_pub_, bspline_pub_, trajectory_pub_, state_pub_, nmpc_pose_pub_, pose_pub_;
 	bool is_first_command = true;
+	bool is_first_360 = false;
+	bool keep_old_goal = false;
 
   /* helper functions */
   int callExplorationPlanner();

@@ -18,16 +18,22 @@
     <arg name="debug" value="false"/>
 
     <group ns="$(arg namespace)">
+
         <node name="custom_joint_controller_ros" pkg="custom_joint_controller_ros"
               type="custom_joint_controller_ros_node" respawn="true" clear_params="true" output="log">
             <rosparam file="$(find custom_joint_controller_ros)/config/config.yaml"/>
             <param name="odom" value="/$(arg namespace)/odom"/>
             <param name="setpoint" value="/$(arg namespace)/full_predicted_state"/>
             <param name="joint_command" value="/$(arg namespace)/joint_commands"/>
+
+            <param name="position_limit_x" value="$(eval arg('box_max_x'))" />
+            <param name="position_limit_y" value="$(eval arg('box_max_y'))" />
+            <param name="position_limit_z" value="$(eval -1 + arg('box_max_z'))" />
         </node>
+        <include file="$(find exploration_manager)/launch/rviz.launch"/>
 
         <node name="mav_nonlinear_mpc" pkg="mav_nonlinear_mpc" type="nonlinear_mpc_node" respawn="true"
-              clear_params="true" output="screen">
+              clear_params="true" output="log">
             <remap from="odometry" to="/$(arg namespace)/odom"/>
             <rosparam file="$(find mav_nonlinear_mpc)/resources/nonlinear_mpc_my_robot_0.yaml"/>
             <rosparam file="$(find mav_disturbance_observer)/resources/disturbance_observer_my_robot_0.yaml"/>
@@ -36,7 +42,6 @@
             <param name="reference_frame" value="world"/>
         </node>
 
-        <!--         main algorithm params -->
         <include file="$(find exploration_manager)/launch/my_algorithm.xml">
             <arg name="debug" value="$(arg debug)"/>
             <arg name="namespace" default="$(arg mav_name)"/>
@@ -60,10 +65,10 @@
             <arg name="info_topic" value="/$(arg namespace)/camera_link/1/camera_info"/>
             <!-- intrinsic params of the depth camera -->
             <!-- not necessary if publishing camera_info -->
-            <arg name="cx" value="640"/>
-            <arg name="cy" value="480"/>
-            <arg name="fx" value="732.99"/>
-            <arg name="fy" value="732.339"/>
+            <arg name="cx" value="320"/>
+            <arg name="cy" value="240"/>
+            <arg name="fx" value="387"/>
+            <arg name="fy" value="387"/>
             <!-- maximum velocity and acceleration the drone will reach -->
             <arg name="max_vel" value="2.0"/>
             <arg name="max_acc" value="2.0"/>
@@ -79,7 +84,6 @@
             <param name="waypoint_type" value="manual-lonely-waypoint"/>
         </node>
 
-        <include file="$(find exploration_manager)/launch/rviz.launch"/>
     </group>
 
 </launch>

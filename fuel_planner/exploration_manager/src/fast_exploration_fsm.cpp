@@ -51,8 +51,9 @@ namespace fast_planner {
 			new_pub_ = nh.advertise<std_msgs::Empty>("planning/new", 10);
 			bspline_pub_ = nh.advertise<bspline::Bspline>("planning/bspline", 10);
 			trajectory_pub_ = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("command/trajectory", 1);
+			pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("command/pose", 1);
 			state_pub_ = nh.advertise<std_msgs::String>("fsm_exploration/state", 1);
-			nmpc_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("command/pos", 1);
+			nmpc_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("command/pose", 1);
 
 		}
 
@@ -136,6 +137,20 @@ namespace fast_planner {
 				}
 
 				case PLAN_MAN_TRAJ: {
+					geometry_msgs::PoseStamped current_pose;
+					current_pose.header.stamp = ros::Time().now();
+					current_pose.header.frame_id = "world";
+					current_pose.pose.position.x = fd_->odom_pos_(0);
+					current_pose.pose.position.y = fd_->odom_pos_(1);
+					current_pose.pose.position.z = fd_->odom_pos_(2);
+					current_pose.pose.orientation.w = fd_->odom_orient_.w();
+					current_pose.pose.orientation.x = fd_->odom_orient_.x();
+					current_pose.pose.orientation.y = fd_->odom_orient_.y();
+					current_pose.pose.orientation.z = fd_->odom_orient_.z();
+					pose_pub_.publish(current_pose);
+					ros::Duration(0.2).sleep();
+
+
 					setStartTraj();
 
 					bool success = callKinodynamicReplan();
@@ -147,6 +162,9 @@ namespace fast_planner {
 						try_count_ = 0;
 					} else {
 						if (try_count_ < 5) {
+							if (try_count_ >= 3) {
+								planner_manager_->kino_path_finder_->optimistic_ = true;
+							}
 							transitState(PLAN_MAN_TRAJ, "FSM");
 							try_count_++;
 						} else {
@@ -154,7 +172,6 @@ namespace fast_planner {
 							fd_->static_state_ = false;
 							planner_manager_->is_doing_360_ = true;
 							transitState(PUB_360, "FSM");
-
 							try_count_ = 0;
 						}
 					}
@@ -162,6 +179,18 @@ namespace fast_planner {
 				}
 
 				case PLAN_TRAJ: {
+					geometry_msgs::PoseStamped current_pose;
+					current_pose.header.stamp = ros::Time().now();
+					current_pose.header.frame_id = "world";
+					current_pose.pose.position.x = fd_->odom_pos_(0);
+					current_pose.pose.position.y = fd_->odom_pos_(1);
+					current_pose.pose.position.z = fd_->odom_pos_(2);
+					current_pose.pose.orientation.w = fd_->odom_orient_.w();
+					current_pose.pose.orientation.x = fd_->odom_orient_.x();
+					current_pose.pose.orientation.y = fd_->odom_orient_.y();
+					current_pose.pose.orientation.z = fd_->odom_orient_.z();
+					pose_pub_.publish(current_pose);
+					ros::Duration(0.2).sleep();
 					setStartTraj();
 
 					// Inform traj_server the replanning
@@ -170,21 +199,23 @@ namespace fast_planner {
 					if (res == SUCCEED) {
 						planner_manager_->is_doing_360_ = false;
 						transitState(PUB_TRAJ, "FSM");
-					} else if (res == NO_FRONTIER) {
-						transitState(FINISH, "FSM");
-						fd_->static_state_ = true;
-						clearVisMarker();
-					} else if (res == DO360) {
-						ROS_WARN_STREAM("TRYING DOING 360");
-						ROS_WARN_STREAM("DOING 360");
-						fd_->static_state_ = false;
-						planner_manager_->is_doing_360_ = true;
-						has_done_360_ = true;
-						transitState(PUB_360, "FSM");
-					} else if (res == FAIL) {
-						// Still in PLAN_TRAJ state, keep replanning
-						ROS_WARN("plan fail");
-						fd_->static_state_ = true;
+					} else {
+						if (try_count_ < 5) {
+							ROS_WARN_STREAM("RETRYING \n");
+							if (try_count_ >= 3) {
+								planner_manager_->kino_path_finder_->optimistic_ = true;
+							}
+							transitState(PLAN_TRAJ, "FSM");
+							try_count_++;
+						} else {
+							ROS_WARN_STREAM("TRYING DOING 360");
+							ROS_WARN_STREAM("DOING 360");
+							has_done_360_ = true;
+							fd_->static_state_ = false;
+							planner_manager_->is_doing_360_ = true;
+							transitState(PUB_360, "FSM");
+							try_count_ = 0;
+						}
 					}
 					break;
 				}
@@ -196,17 +227,16 @@ namespace fast_planner {
 				case PUB_360: {
 					// safely start an in - place rotation
 					Eigen::Quaterniond q;
-					double yaw = std::fmod(fd_->odom_yaw_ + 3.1415926, 3.1415926 * 2);
-					q = Eigen::AngleAxisd(yaw, Vector3d::UnitZ());
+					double start_yaw = std::fmod(fd_->odom_yaw_ + 3.1415926 * 2, 3.1415926 * 2);
+					double yaw;
 
 					trajectory_msgs::MultiDOFJointTrajectory msg;
 					msg.header.frame_id = "world";
 					msg.header.stamp = ros::Time().now();
-					ros::Duration(0.1).sleep();
 					geometry_msgs::Transform transform;
 					geometry_msgs::Twist velocity;
 					geometry_msgs::Twist acceleration;
-					int max_i = 3;
+					int max_i = 4;
 					int divider = 360 / max_i; // 24
 					for (int i = 0; i < max_i; i++) { // do something less than 360
 						trajectory_msgs::MultiDOFJointTrajectoryPoint temp_point;
@@ -214,8 +244,9 @@ namespace fast_planner {
 						transform.translation.y = fd_->odom_pos_.y();
 						transform.translation.z = fd_->odom_pos_.z();
 
-						yaw = std::fmod(0.2 + fd_->odom_yaw_ + i * divider * 3.1415926 / 180, 3.1415926 * 2);
-
+						yaw = std::fmod(0.2 + start_yaw + i * divider * 3.1415926 / 180, 3.1415926 * 2);
+//						yaw = std::fmod(divider * 3.1415926 / 180, 3.1415926 * 2);
+						ROS_WARN_STREAM("THE YAW IS " << yaw << " \n");
 						q = Eigen::AngleAxisd(yaw, Vector3d::UnitZ());
 						transform.rotation.x = q.x();
 						transform.rotation.y = q.y();
@@ -233,7 +264,7 @@ namespace fast_planner {
 						temp_point.velocities.push_back(velocity);
 						temp_point.accelerations.push_back(acceleration);
 						temp_point.transforms.push_back(transform);
-						temp_point.time_from_start = ros::Duration().fromSec(0.2 * i);
+						temp_point.time_from_start = ros::Duration().fromSec(0.3 * i);
 						msg.points.push_back(temp_point);
 					}
 					planner_manager_->local_data_.duration_ = 1;
@@ -252,7 +283,6 @@ namespace fast_planner {
 
 				case PUB_TRAJ: {
 					double dt = (ros::Time::now() - fd_->newest_traj_.start_time).toSec();
-					ROS_WARN_STREAM("dt " << dt);
 					if (dt > 0) {
 						visualization_->drawYawTraj(planner_manager_->local_data_.position_traj_,
 						                            planner_manager_->local_data_.yaw_traj_, fd_->newest_traj_.yaw_dt);
@@ -265,6 +295,7 @@ namespace fast_planner {
 						geometry_msgs::Twist velocity;
 						geometry_msgs::Twist acceleration;
 						Eigen::Quaterniond q;
+						double step_time = fd_->newest_velocities_.size() * fd_->newest_traj_.yaw_dt * 0.5 / fd_->newest_traj_.pos_pts.size();
 						for (int i = 0; i < fd_->newest_traj_.pos_pts.size(); i++) {
 							trajectory_msgs::MultiDOFJointTrajectoryPoint temp_point;
 							transform.translation.x = fd_->newest_traj_.pos_pts.at(i).x;
@@ -282,11 +313,11 @@ namespace fast_planner {
 							transform.rotation.z = q.z();
 							transform.rotation.w = q.w();
 
-							if (i == 0) {
+							if (true) {
 								// just override this
-								velocity.linear.x = 0 * fd_->odom_vel_.x();
-								velocity.linear.y = 0 * fd_->odom_vel_.y();
-								velocity.linear.z = 0 * fd_->odom_vel_.z();
+								velocity.linear.x = fd_->odom_vel_.x();
+								velocity.linear.y = fd_->odom_vel_.y();
+								velocity.linear.z = fd_->odom_vel_.z();
 								acceleration.linear.x = 0;
 								acceleration.linear.y = 0;
 								acceleration.linear.z = 0;
@@ -317,9 +348,7 @@ namespace fast_planner {
 							temp_point.velocities.push_back(velocity);
 							temp_point.accelerations.push_back(acceleration);
 							temp_point.transforms.push_back(transform);
-//							std::cout << "yaw dt " << fd_->newest_traj_.yaw_dt << std::endl;
-//							std::cout << "dt " << dt << std::endl;
-							temp_point.time_from_start = ros::Duration().fromSec(0.8 * fd_->newest_traj_.yaw_dt * i);
+							temp_point.time_from_start = ros::Duration().fromSec(step_time * i);
 							msg.points.push_back(temp_point);
 						}
 						trajectory_pub_.publish(msg);
@@ -335,39 +364,68 @@ namespace fast_planner {
 				}
 
 				case EXEC_TRAJ: {
+					planner_manager_->kino_path_finder_->optimistic_ = false;
+
 					LocalTrajData *info = &planner_manager_->local_data_;
 					double t_cur = (ros::Time::now() - info->start_time_).toSec(); // elapsed
 
 					// Replan if traj is almost fully executed
 					double time_to_end = info->duration_ - t_cur;
 					if (time_to_end < fp_->replan_thresh1_) {
-						planner_manager_->is_doing_360_ = false;
-						has_done_360_ = false;
-						if (fd_->manual_) {
-							transitState(MAN_GOAL_REACHED, "FSM");
+						if (is_first_360) {
+							is_first_360 = false;
+							transitState(WAIT_TRIGGER, "FSM");
+						} else {
+							keep_old_goal = false;
+							planner_manager_->is_doing_360_ = false;
+							has_done_360_ = false;
+							if (fd_->manual_) {
+								transitState(MAN_GOAL_REACHED, "FSM");
 //							fd_->manual_ = false;
-						} else
-							transitState(PLAN_TRAJ, "FSM");
+							} else
+								transitState(PLAN_TRAJ, "FSM");
+						}
+
 						ROS_WARN("Replan: traj fully executed=================================");
-						return;
+						break;
 					}
+
 					if (!fd_->manual_) {
 						// Replan if next frontier to be visited is covered
-						if (expl_manager_->frontier_finder_ != nullptr)
-							if (t_cur > fp_->replan_thresh2_ && expl_manager_->frontier_finder_->isFrontierCovered()) {
-								planner_manager_->is_doing_360_ = false;
-								transitState(PLAN_TRAJ, "FSM");
-								ROS_WARN("Replan: cluster covered=====================================");
-								return;
-							}
-					}          // Replan after some time
+						if (expl_manager_->frontier_finder_ != nullptr && not is_first_360)
+							planner_manager_->is_doing_360_ = false;
+						if (t_cur > fp_->replan_thresh2_ && expl_manager_->frontier_finder_->isFrontierCovered()) {
+							keep_old_goal = false;
+							transitState(PLAN_TRAJ, "FSM");
+							ROS_WARN("Replan: cluster covered=====================================");
+							return;
+						} else {
+							keep_old_goal = true;
+							transitState(PLAN_TRAJ, "FSM");
+							ROS_WARN("Replan: but cluster not covered =====================================");
+							return;
+						}
+					} else {
+						if (t_cur > fp_->replan_thresh2_) {
+							keep_old_goal = true;
+							planner_manager_->is_doing_360_ = false;
+							transitState(PLAN_MAN_TRAJ, "FSM");
+							ROS_WARN("Replan: safety replan =====================================");
+							return;
+						}
+					}
+
+					// Replan after some time
 					if (t_cur > fp_->replan_thresh3_ && !classic_) {
 						if (planner_manager_->is_doing_360_) {
 							break;
-						} else if (fd_->manual_)
-							transitState(MAN_GOAL_REACHED, "FSM");
-						else
+						} else if (fd_->manual_) {
+							keep_old_goal = true;
+							transitState(PLAN_MAN_TRAJ, "FSM");
+						} else {
+							keep_old_goal = true;
 							transitState(PLAN_TRAJ, "FSM");
+						}
 						ROS_WARN("Replan: periodic call=======================================");
 					}
 					break;
@@ -390,7 +448,6 @@ namespace fast_planner {
 				fd_->start_yaw_(0) = fd_->odom_yaw_;
 				fd_->start_yaw_(1) = fd_->start_yaw_(2) = 0.0;
 			} else {
-				// fixme this assumes the robot has moved?
 				// Replan from non-static state, starting from 'replan_time' seconds later
 				LocalTrajData *info = &planner_manager_->local_data_;
 				double t_r = (ros::Time::now() - info->start_time_).toSec() + fp_->replan_time_;
@@ -414,9 +471,15 @@ namespace fast_planner {
 
 		int FastExplorationFSM::callExplorationPlanner() {
 			ros::Time time_r = ros::Time::now() + ros::Duration(fp_->replan_time_);
-
-			int res = expl_manager_->planExploreMotion(fd_->start_pt_, fd_->start_vel_, fd_->start_acc_,
-			                                           fd_->start_yaw_);
+			int res;
+			if (!keep_old_goal)
+				res = expl_manager_->planExploreMotion(fd_->start_pt_, fd_->start_vel_, fd_->start_acc_,
+				                                       fd_->start_yaw_);
+			else {
+				res = planner_manager_->kinodynamicReplan(fd_->start_pt_, fd_->start_vel_, fd_->start_acc_,
+				                                          fd_->end_pt_, fd_->end_vel_);
+				planner_manager_->planYawExplore(fd_->start_yaw_, fd_->end_yaw_, true, expl_manager_->ep_->relax_time_);
+			}
 			classic_ = false;
 
 			// int res = expl_manager_->classicFrontier(fd_->start_pt_, fd_->start_yaw_[0]);
@@ -424,7 +487,6 @@ namespace fast_planner {
 
 			// int res = expl_manager_->rapidFrontier(fd_->start_pt_, fd_->start_vel_, fd_->start_yaw_[0],
 			// classic_);
-
 			if (res == SUCCEED) {
 				setVisInfo(time_r);
 			}
@@ -580,6 +642,12 @@ namespace fast_planner {
 			bspline.start_time = info->start_time_;
 			bspline.traj_id = info->traj_id_;
 			Eigen::MatrixXd pos_pts = info->position_traj_.getControlPoint();
+
+			fd_->end_pt_(0) = pos_pts(pos_pts.rows() - 1, 0);
+			fd_->end_pt_(1) = pos_pts(pos_pts.rows() - 1, 1);
+			fd_->end_pt_(2) = pos_pts(pos_pts.rows() - 1, 2);
+			fd_->end_vel_.setZero();
+
 			for (int i = 0; i < pos_pts.rows(); ++i) {
 				geometry_msgs::Point pt;
 				pt.x = pos_pts(i, 0);
@@ -587,7 +655,7 @@ namespace fast_planner {
 				pt.z = pos_pts(i, 2);
 				bspline.pos_pts.push_back(pt);
 			}
-			vector<geometry_msgs::Twist> vel_vec;
+			vector <geometry_msgs::Twist> vel_vec;
 			Eigen::MatrixXd vel_pts = info->velocity_traj_.getControlPoint();
 			for (int i = 0; i < vel_pts.rows(); ++i) {
 				geometry_msgs::Twist pt;
@@ -596,7 +664,7 @@ namespace fast_planner {
 				pt.linear.z = pos_pts(i, 2);
 				vel_vec.push_back(pt);
 			}
-			vector<geometry_msgs::Twist> acc_vec;
+			vector <geometry_msgs::Twist> acc_vec;
 			Eigen::MatrixXd acc_pts = info->acceleration_traj_.getControlPoint();
 			for (int i = 0; i < vel_pts.rows(); ++i) {
 				geometry_msgs::Twist pt;
@@ -630,6 +698,7 @@ namespace fast_planner {
 				has_done_360_ = true;
 				transitState(PUB_FIRST_360, "triiger callback");
 				is_first_command = false;
+				is_first_360 = true;
 				return;
 			}
 			fd_->trigger_ = true;
@@ -647,7 +716,9 @@ namespace fast_planner {
 				planner_manager_->is_doing_360_ = true;
 				has_done_360_ = true;
 				transitState(PUB_FIRST_360, "pose callback");
+
 				is_first_command = false;
+				is_first_360 = true;
 				return;
 			}
 			// safely start an in - place rotation
@@ -656,7 +727,7 @@ namespace fast_planner {
 			tmp.pose.position.y = fd_->odom_pos_.y();
 			tmp.pose.position.z = fd_->odom_pos_.z();
 			Eigen::Quaterniond q;
-			double yaw = std::fmod(fd_->odom_yaw_ + 3.1415926, 3.1415926 * 2); // 0.7 is a manual offset to speed up
+			double yaw = std::fmod(fd_->odom_yaw_ + 3.1415926 * 2, 3.1415926 * 2); // 0.7 is a manual offset to speed up
 			q = Eigen::AngleAxisd(yaw, Vector3d::UnitZ());
 			tmp.pose.orientation.x = q.x();
 			tmp.pose.orientation.y = q.y();
@@ -668,7 +739,20 @@ namespace fast_planner {
 			ros::Duration(0.1).sleep();
 
 			fd_->trigger_ = true;
-			fd_->manual_ = true;
+			planner_manager_->kino_path_finder_->optimistic_ = true;
+			if (msg->header.frame_id.compare("world") == 0) {
+				fd_->manual_ = true;
+			} else if (msg->header.frame_id.compare("fixing_manual") == 0) {
+				planner_manager_->kino_path_finder_->optimistic_ = false;
+				fd_->manual_ = true;
+			} else if (msg->header.frame_id.compare("fixing_automatic") == 0) {
+				planner_manager_->kino_path_finder_->optimistic_ = false;
+				fd_->manual_ = false;
+			} else {
+				ROS_WARN_STREAM("Mixing modes because robot is struggling \n");
+				planner_manager_->kino_path_finder_->optimistic_ = false;
+				fd_->manual_ = false;
+			}
 			cout << "Manual Goal!" << endl;
 			fd_->end_pt_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
 			fd_->end_vel_.setZero();
@@ -681,7 +765,6 @@ namespace fast_planner {
 			fd_->end_yaw_ = atan2(rot_x(1), rot_x(0));
 			ROS_WARN_STREAM("Planning toward " << fd_->end_pt_ << " " << fd_->end_yaw_);
 			transitState(PLAN_MAN_TRAJ, "poseCallback");
-			planner_manager_->kino_path_finder_->optimistic_ = true;
 		}
 
 		void FastExplorationFSM::safetyCallback(const ros::TimerEvent &e) {

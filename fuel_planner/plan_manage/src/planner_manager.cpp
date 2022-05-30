@@ -95,7 +95,6 @@ namespace fast_planner {
 
 		bool FastPlannerManager::checkTrajCollision(double &distance) {
 			if (is_doing_360_) {
-				ROS_WARN("[FastPlannerManager] checkTrajCollision: 360 is going on, skip collision check");
 				return true;
 			}
 			double t_now = (ros::Time::now() - local_data_.start_time_).toSec();

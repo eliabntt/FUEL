@@ -332,7 +332,9 @@ void SDFMap::inputPointCloud(
   while (!md_->cache_voxel_.empty()) {
     int adr = md_->cache_voxel_.front();
     md_->cache_voxel_.pop();
-    double log_odds_update =
+		if (adr > md_->count_hit_.size())
+			continue;
+	  double log_odds_update =
         md_->count_hit_[adr] >= md_->count_miss_[adr] ? mp_->prob_hit_log_ : mp_->prob_miss_log_;
     md_->count_hit_[adr] = md_->count_miss_[adr] = 0;
     if (md_->occupancy_buffer_[adr] < mp_->clamp_min_log_ - 1e-3)
