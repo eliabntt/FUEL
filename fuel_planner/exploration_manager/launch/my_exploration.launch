@@ -60,9 +60,9 @@
             <!-- depth topic: depth image, 640x480 by default -->
             <!-- cloud topic: point cloud measurement  -->
             <!-- subscribe ONLY TO ONE of the two topics -->
-            <arg name="depth_topic" value="/$(arg namespace)/camera_link/1/depth/image_raw"/>
-            <arg name="cloud_topic" value="/$(arg namespace)/camera_link/1/point_cloud22"/>
-            <arg name="info_topic" value="/$(arg namespace)/camera_link/1/camera_info"/>
+            <arg name="depth_topic" value="/$(arg namespace)/camera_link/0/depth/image_raw"/>
+            <arg name="cloud_topic" value="/$(arg namespace)/camera_link/0/point_cloud22"/>
+            <arg name="info_topic" value="/$(arg namespace)/camera_link/0/camera_info"/>
             <!-- intrinsic params of the depth camera -->
             <!-- not necessary if publishing camera_info -->
             <arg name="cx" value="320"/>
