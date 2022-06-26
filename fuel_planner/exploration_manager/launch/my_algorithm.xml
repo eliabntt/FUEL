@@ -124,9 +124,9 @@
     <param name="frontier/min_view_finish_fraction" value="0.2" type="double"/>;
 
     <!-- Perception utils -->
-    <param name="perception_utils/top_angle" value="1.54" type="double"/>;
-    <param name="perception_utils/left_angle" value="0.74" type="double"/>;
-    <param name="perception_utils/right_angle" value="0.7" type="double"/>;
+    <param name="perception_utils/top_angle" value="0.56" type="double"/>;
+    <param name="perception_utils/left_angle" value="1.5" type="double"/>;
+    <param name="perception_utils/right_angle" value="1.5" type="double"/>;
     <param name="perception_utils/max_dist" value="5" type="double"/>;
     <param name="perception_utils/vis_dist" value="1.0" type="double"/>;
 

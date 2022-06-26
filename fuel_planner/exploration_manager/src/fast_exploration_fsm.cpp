@@ -163,7 +163,7 @@ namespace fast_planner {
 					} else {
 						if (try_count_ < 5) {
 							if (try_count_ >= 3) {
-								planner_manager_->kino_path_finder_->optimistic_ = true;
+								planner_manager_->kino_path_finder_->optimistic_ = true;//fixme was true but is risky, and mpc struggle
 							}
 							transitState(PLAN_MAN_TRAJ, "FSM");
 							try_count_++;
@@ -295,7 +295,8 @@ namespace fast_planner {
 						geometry_msgs::Twist velocity;
 						geometry_msgs::Twist acceleration;
 						Eigen::Quaterniond q;
-						double step_time = fd_->newest_velocities_.size() * fd_->newest_traj_.yaw_dt * 0.5 / fd_->newest_traj_.pos_pts.size();
+						double step_time =
+							fd_->newest_velocities_.size() * fd_->newest_traj_.yaw_dt * 0.7 / fd_->newest_traj_.pos_pts.size();
 						for (int i = 0; i < fd_->newest_traj_.pos_pts.size(); i++) {
 							trajectory_msgs::MultiDOFJointTrajectoryPoint temp_point;
 							transform.translation.x = fd_->newest_traj_.pos_pts.at(i).x;
@@ -313,7 +314,7 @@ namespace fast_planner {
 							transform.rotation.z = q.z();
 							transform.rotation.w = q.w();
 
-							if (true) {
+							if (i == 0) {
 								// just override this
 								velocity.linear.x = fd_->odom_vel_.x();
 								velocity.linear.y = fd_->odom_vel_.y();
@@ -322,27 +323,12 @@ namespace fast_planner {
 								acceleration.linear.y = 0;
 								acceleration.linear.z = 0;
 							} else {
-								// here the = is missing because the first setpoint (i=0) is updated above
-								auto cp_vel = planner_manager_->local_data_.velocity_traj_.getControlPoint();
-								if (i > fd_->newest_velocities_.size()) {
-									velocity.linear.x = cp_vel(cp_vel.rows() - 1, 0);
-									velocity.linear.y = cp_vel(cp_vel.rows() - 1, 1);
-									velocity.linear.z = cp_vel(cp_vel.rows() - 1, 2);
-								} else {
-									velocity.linear.x = cp_vel(i - 1, 0);
-									velocity.linear.y = cp_vel(i - 1, 1);
-									velocity.linear.z = cp_vel(i - 1, 2);
-								}
-								auto cp_acc = planner_manager_->local_data_.velocity_traj_.getControlPoint();
-								if (i > fd_->newest_accelerations_.size()) {
-									acceleration.linear.x = cp_acc(cp_acc.rows() - 1, 0);
-									acceleration.linear.y = cp_acc(cp_acc.rows() - 1, 1);
-									acceleration.linear.z = cp_acc(cp_acc.rows() - 1, 2);
-								} else {
-									acceleration.linear.x = cp_acc(i - 1, 0);
-									acceleration.linear.y = cp_acc(i - 1, 1);
-									acceleration.linear.z = cp_acc(i - 1, 2);
-								}
+								velocity.linear.x = 0 * fd_->odom_vel_.x();
+								velocity.linear.y = 0 * fd_->odom_vel_.y();
+								velocity.linear.z = 0 * fd_->odom_vel_.z();
+								acceleration.linear.x = 0;
+								acceleration.linear.y = 0;
+								acceleration.linear.z = 0;
 							}
 
 							temp_point.velocities.push_back(velocity);
@@ -739,8 +725,8 @@ namespace fast_planner {
 			ros::Duration(0.1).sleep();
 
 			fd_->trigger_ = true;
-			planner_manager_->kino_path_finder_->optimistic_ = true;
 			if (msg->header.frame_id.compare("world") == 0) {
+				planner_manager_->kino_path_finder_->optimistic_ = true;
 				fd_->manual_ = true;
 			} else if (msg->header.frame_id.compare("fixing_manual") == 0) {
 				planner_manager_->kino_path_finder_->optimistic_ = false;

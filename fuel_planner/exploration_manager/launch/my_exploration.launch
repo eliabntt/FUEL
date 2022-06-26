@@ -30,7 +30,7 @@
             <param name="position_limit_y" value="$(eval arg('box_max_y'))" />
             <param name="position_limit_z" value="$(eval -1 + arg('box_max_z'))" />
         </node>
-        <include file="$(find exploration_manager)/launch/rviz.launch"/>
+<!--         <include file="$(find exploration_manager)/launch/rviz.launch"/> -->
 
         <node name="mav_nonlinear_mpc" pkg="mav_nonlinear_mpc" type="nonlinear_mpc_node" respawn="true"
               clear_params="true" output="log">
@@ -70,8 +70,8 @@
             <arg name="fx" value="387"/>
             <arg name="fy" value="387"/>
             <!-- maximum velocity and acceleration the drone will reach -->
-            <arg name="max_vel" value="2.0"/>
-            <arg name="max_acc" value="2.0"/>
+            <arg name="max_vel" value="1"/>
+            <arg name="max_acc" value="1"/>
         </include>
         <!---->
         <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen"
