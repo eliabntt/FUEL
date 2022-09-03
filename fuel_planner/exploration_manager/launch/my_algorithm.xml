@@ -101,7 +101,7 @@
     <param name="exploration/refined_num" value="7" type="int"/>
     <param name="exploration/refined_radius" value="5.0" type="double"/>
     <param name="exploration/max_decay" value="0.8" type="double"/>
-    <param name="exploration/top_view_num" value="15" type="int"/>
+    <param name="exploration/top_view_num" value="20" type="int"/>
     <param name="exploration/vm" value="$(eval 1.0 * arg('max_vel'))" type="double"/>
     <param name="exploration/am" value="$(eval 1.0 * arg('max_acc'))" type="double"/>
     <param name="exploration/yd" value="$(eval 60 * 3.1415926 / 180.0)" type="double"/>
@@ -158,7 +158,7 @@
     <param name="search/max_tau" value="0.7" type="double"/>
     <param name="search/init_max_tau" value="1" type="double"/>
     <param name="search/max_vel" value="$(arg max_vel)" type="double"/>
-    <param name="search/vel_margin" value="0.25" type="double"/>
+    <param name="search/vel_margin" value="0.2" type="double"/>
     <param name="search/max_acc" value="$(arg max_acc)" type="double"/>
     <param name="search/w_time" value="10.0" type="double"/>
     <param name="search/horizon" value="6.0" type="double"/>
