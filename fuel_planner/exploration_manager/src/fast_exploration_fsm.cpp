@@ -264,10 +264,10 @@ namespace fast_planner {
 						temp_point.velocities.push_back(velocity);
 						temp_point.accelerations.push_back(acceleration);
 						temp_point.transforms.push_back(transform);
-						temp_point.time_from_start = ros::Duration().fromSec(0.3 * i);
+						temp_point.time_from_start = ros::Duration().fromSec(0.5 * i);
 						msg.points.push_back(temp_point);
 					}
-					planner_manager_->local_data_.duration_ = 1;
+					planner_manager_->local_data_.duration_ = 1.5;
 					trajectory_pub_.publish(msg);
 					fd_->static_state_ = false;
 					old_odom_orient_ = fd_->odom_orient_;
@@ -784,7 +784,6 @@ namespace fast_planner {
 
 			Eigen::Vector3d rot_x = fd_->odom_orient_.toRotationMatrix().block<3, 1>(0, 0);
 			fd_->odom_yaw_ = atan2(rot_x(1), rot_x(0));
-
 			fd_->have_odom_ = true;
 		}
 

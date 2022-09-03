@@ -837,6 +837,8 @@ namespace fast_planner {
 			Eigen::Vector3d end_yaw3d(end_yaw, 0, 0);
 			calcNextYaw(last_yaw, end_yaw3d(0));
 			yaw.block<3, 1>(seg_num, 0) = states2pts * end_yaw3d;
+			while (end_yaw3d[0] < -M_PI) end_yaw3d[0] += 2 * M_PI;
+			while (end_yaw3d[0] > M_PI) end_yaw3d[0] -= 2 * M_PI;
 
 			// Debug rapid change of yaw
 			if (fabs(start_yaw3d[0] - end_yaw3d[0]) >= M_PI) {
