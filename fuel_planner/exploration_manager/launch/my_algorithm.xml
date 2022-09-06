@@ -89,6 +89,9 @@
     <param name="fsm/thresh_replan1" value="1.5" type="double"/>
     <param name="fsm/thresh_replan2" value="0.8" type="double"/>
     <param name="fsm/thresh_replan3" value="0.6" type="double"/>
+    <param name="fsm/thresh_replan1" value="2" type="double"/>
+    <param name="fsm/thresh_replan2" value="1.2" type="double"/>
+    <param name="fsm/thresh_replan3" value="0.7" type="double"/>
 
     <!-- <param name="fsm/thresh_replan1" value="0.00001" type="double"/> -->
     <!-- <param name="fsm/thresh_replan2" value="100.0" type="double"/> -->
