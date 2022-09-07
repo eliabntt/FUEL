@@ -45,7 +45,7 @@
     <param name="sdf_map/map_size_y"   value="$(arg map_size_y_)" />
     <param name="sdf_map/map_size_z"   value="$(arg map_size_z_)" />
     <!-- <param name="sdf_map/obstacles_inflation"     value="0.099" />  -->
-    <param name="sdf_map/obstacles_inflation"     value="0.2" />
+    <param name="sdf_map/obstacles_inflation"     value="0.1" />
     <param name="sdf_map/local_bound_inflate"    value="0.4"/>
     <param name="sdf_map/local_map_margin" value="150"/>
     <param name="sdf_map/ground_height"        value="0"/>
@@ -77,7 +77,7 @@
     <param name="map_ros/depth_filter_margin"    value="2"/>
     <param name="map_ros/k_depth_scaling_factor" value="1000.0"/>
     <param name="map_ros/skip_pixel" value="2"/>
-    <param name="map_ros/esdf_slice_height" value="0.2"/>
+    <param name="map_ros/esdf_slice_height" value="0.3"/>
     <param name="map_ros/visualization_truncate_height"   value="5.09"/>
     <param name="map_ros/visualization_truncate_low"   value="-2.0"/>
     <param name="map_ros/show_occ_time"  value="false"/>
@@ -86,9 +86,9 @@
     <param name="map_ros/frame_id"      value="world"/>
 
     <!-- Fsm -->
-    <param name="fsm/thresh_replan1" value="2" type="double"/>
-    <param name="fsm/thresh_replan2" value="1.2" type="double"/>
-    <param name="fsm/thresh_replan3" value="0.7" type="double"/>
+    <param name="fsm/thresh_replan1" value="1.5" type="double"/>
+    <param name="fsm/thresh_replan2" value="0.8" type="double"/>
+    <param name="fsm/thresh_replan3" value="0.6" type="double"/>
 
     <!-- <param name="fsm/thresh_replan1" value="0.00001" type="double"/> -->
     <!-- <param name="fsm/thresh_replan2" value="100.0" type="double"/> -->
@@ -111,7 +111,7 @@
     <param name="exploration/relax_time" value="1.0" type="double"/>
 
     <param name="frontier/cluster_min" value="20" type="int"/>
-    <param name="frontier/cluster_size_xy" value="1.5" type="double"/>
+    <param name="frontier/cluster_size_xy" value="0.5" type="double"/>
     <param name="frontier/cluster_size_z" value="10.0" type="double"/>
     <param name="frontier/min_candidate_dist" value="0.75" type="double"/>
     <param name="frontier/min_candidate_clearance" value="0.3" type="double"/>
@@ -119,8 +119,8 @@
     <param name="frontier/candidate_rnum" value="3" type="int"/>
     <param name="frontier/candidate_rmin" value="1.5" type="double"/>
     <param name="frontier/candidate_rmax" value="2.5" type="double"/>
-    <param name="frontier/down_sample" value="2" type="int"/>;
-    <param name="frontier/min_visib_num" value="15" type="int"/>;
+    <param name="frontier/down_sample" value="3" type="int"/>;
+    <param name="frontier/min_visib_num" value="10" type="int"/>;
     <param name="frontier/min_view_finish_fraction" value="0.1" type="double"/>;
 
     <!-- Perception utils -->
@@ -171,7 +171,7 @@
     <param name="search/optimistic" value="false" type="bool"/>
 
     <param name="astar/lambda_heu" value="10000.0" type="double"/>
-    <param name="astar/resolution_astar" value="0.2" type="double"/>
+    <param name="astar/resolution_astar" value="0.1" type="double"/>
     <param name="astar/allocate_num" value="1000000" type="int"/>
     <param name="astar/max_search_time" value="0.001" type="double"/>
 
@@ -201,7 +201,7 @@
     <param name="optimization/max_iteration_time4" value="0.003" type="double"/>
     <param name="bspline/limit_vel" value="$(arg max_vel)" type="double"/>
     <param name="bspline/limit_acc" value="$(arg max_acc)" type="double"/>
-    <param name="bspline/limit_ratio" value="1.1" type="double"/>
+    <param name="bspline/limit_ratio" value="1" type="double"/>
 
   </node>
 
