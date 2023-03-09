@@ -1,6 +1,6 @@
 # FUEL
 
-Forked FUEL project. 
+Forked FUEL project used in the [GRADE](https://eliabntt.github.io/GRADE-RR) project.
 
 WORKING IN UBUNTU 20.04 WITH PCL 1.10 AND ROS NOETIC.
 
@@ -17,7 +17,7 @@ If you want to use the original simulation or other parts of the code please che
 An example:
 ![image](https://user-images.githubusercontent.com/19806758/165939138-bcc36f2f-a4e8-4927-99a1-d583e2a798dc.png)
 
-In this way you will be able to use the original version of the code while still mantaining the edits on the FSM. 
+In this way you will be able to use the original version of the code while still maintaining the edits on the FSM. 
 
 My settings can be run with 
 `roslaunch exploration_manager my_exploration.launch`
